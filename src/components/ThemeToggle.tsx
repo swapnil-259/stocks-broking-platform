@@ -25,7 +25,7 @@ const ThemeToggle = () => {
     return (
         <Pressable
             onPress={toggleTheme}
-            className='w-24 h-12 p-1 bg-secondary relative flex-row rounded-full items-center justify-between'>
+            className='w-24 h-12 p-1 m-2 bg-secondary relative flex-row rounded-full items-center justify-between'>
             <Icon icon='sun' />
             <Icon icon='moon' />
             <Animated.View
