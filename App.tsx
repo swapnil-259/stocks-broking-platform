@@ -1,18 +1,22 @@
 import './global.css';
 import React from 'react';
 import { View, Text } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ThemeProvider } from './src/providers/ThemeProvider';
+import ThemeToggle from './src/components/ThemeToggle';
 
-function App() {
+const AppContent = () => {
   return (
-    <SafeAreaProvider>
-      <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-xl font-bold text-blue-500">
-          Welcome to Nativewind!
-        </Text>
-      </View>
-    </SafeAreaProvider>
+    <View className="flex-1 items-center justify-center bg-background">
+      <Text className="text-text text-2xl font-bold mb-4">Hello Toggle</Text>
+      <ThemeToggle />
+    </View>
+  );
+};
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
-
-export default App;
