@@ -53,7 +53,7 @@ const ExploreScreen = () => {
                     setError("Showing fallback data due to API issue.");
                 }
             } catch (error) {
-                console.error("Failed to load top gainers/losers:", error);
+                console.warn("Failed to load top gainers/losers:", error);
                 setTopGainers(fallbackData.top_gainers);
                 setTopLosers(fallbackData.top_losers);
                 setError("Unable to fetch live data. Showing static stocks.");

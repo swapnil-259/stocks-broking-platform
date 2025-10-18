@@ -1,6 +1,8 @@
 import React from 'react';
 import { Dimensions, View, Text } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import { useTheme } from '../providers/ThemeProvider';
+import { colorTokens } from '../utils/color-theme';
 
 type Props = {
     data: number[];
@@ -12,47 +14,60 @@ export default function PriceChart({ data, height = 220 }: Props) {
 
     if (!data || data.length === 0) return null;
     const sanitized = data.map((d) => Number(d)).filter((n) => !Number.isNaN(n));
+    console.log('PriceChart: incoming data length=', data?.length, 'sanitized length=', sanitized.length, 'sample=', sanitized.slice(0, 6));
 
     if (sanitized.length === 0) return null;
-    if (sanitized.length === 1) {
-        return (
-            <View className="px-4">
-                <View className="p-4 bg-gray-100 dark:bg-gray-800 rounded">
-                    <Text className="text-lg text-text">${sanitized[0].toFixed(2)}</Text>
-                </View>
-            </View>
-        );
-    }
+    const { theme } = useTheme();
+    const tokens = colorTokens[theme];
+    const chartValues = sanitized.length === 1 ? Array(4).fill(sanitized[0]) : sanitized;
 
-    const labelStep = Math.max(1, Math.ceil(sanitized.length / 6));
+    const labelStep = Math.max(1, Math.ceil(chartValues.length / 6));
+    const chartLabels = chartValues.map((_, i) => {
+        if (i === 0 || i === chartValues.length - 1) return `${i}`;
+        return i % labelStep === 0 ? `${i}` : '';
+    });
+
     const chartData = {
-        labels: sanitized.map((_, i) => (i % labelStep === 0 ? `${i}` : '')),
-        datasets: [
-            {
-                data: sanitized,
-                strokeWidth: 2,
-            },
-        ],
+        labels: chartLabels,
+        datasets: [{ data: chartValues, strokeWidth: 2 }],
+    };
+    const lineColor = theme === 'dark' ? (tokens?.primary || '#6364f1') : '#2563eb';
+    const bgFrom = tokens?.background || (theme === 'dark' ? '#000' : '#fff');
+    const bgTo = bgFrom;
+
+    const hexToRgba = (hex: string, opacity = 1) => {
+        if (!hex) return `rgba(37,99,235,${opacity})`;
+        let h = hex.replace('#', '');
+        if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+        const r = parseInt(h.substring(0, 2), 16);
+        const g = parseInt(h.substring(2, 4), 16);
+        const b = parseInt(h.substring(4, 6), 16);
+        return `rgba(${r},${g},${b},${opacity})`;
     };
 
     return (
-        <View className="px-4">
+        <View className="mb-4">
             <LineChart
                 data={chartData}
                 width={screenWidth}
                 height={height}
-                withDots={false}
+                withDots={true}
                 withShadow={false}
                 withVerticalLines={false}
                 withInnerLines={false}
+                withHorizontalLabels={true}
+                withVerticalLabels={true}
+                fromZero={false}
                 chartConfig={{
-                    backgroundGradientFrom: '#ffffff',
-                    backgroundGradientTo: '#ffffff',
-                    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                    strokeWidth: 2,
+                    backgroundGradientFrom: bgFrom,
+                    backgroundGradientTo: bgTo,
+                    decimalPlaces: 2,
+                    color: (opacity = 1) => hexToRgba(lineColor, opacity),
+                    labelColor: (opacity = 1) => hexToRgba(tokens?.text || (theme === 'dark' ? '#fff' : '#000'), 0.7),
+                    propsForDots: { r: '3', strokeWidth: '0', stroke: hexToRgba(tokens?.background || '#fff', 1) },
                 }}
-                bezier
-                style={{ borderRadius: 8 }}
+                bezier={false}
+                style={{ borderRadius: 8, backgroundColor: 'transparent' }}
             />
         </View>
     );

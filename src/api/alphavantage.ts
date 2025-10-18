@@ -154,7 +154,7 @@ export const getStockPriceHistory = async (symbol: string): Promise<number[]> =>
             data = intradayResponse.data["Time Series (5min)"];
         }
         if (!data) {
-            console.error(`No data found for ${symbol} even after fallback.`);
+            console.warn(`No data found for ${symbol} even after fallback.`);
             return [];
         }
         const sortedDates = Object.keys(data).sort(
