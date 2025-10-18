@@ -6,6 +6,8 @@ import { WatchlistProvider } from './src/context/WatchListContext';
 import { WatchlistsCollectionProvider } from './src/context/WatchlistsCollectionContext';
 import { initCacheFromStorage } from './src/utils/cache';
 import { ActivityIndicator, View } from 'react-native';
+import { useTheme } from './src/providers/ThemeProvider';
+import { colorTokens } from './src/utils/color-theme';
 
 
 export default function App() {
@@ -16,9 +18,13 @@ export default function App() {
   }, []);
 
   if (!hydrated) {
-    return (<View className="flex-1 items-center justify-center">
-      <ActivityIndicator size="large" />
-    </View>);
+    const theme = 'light' as const;
+    const tokens = colorTokens[theme];
+    return (
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor: tokens.background }}>
+        <ActivityIndicator size="large" color={tokens.primary} />
+      </View>
+    );
   }
   return (
     <ThemeProvider>
