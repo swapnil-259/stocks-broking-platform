@@ -3,6 +3,9 @@ import { View, Text, FlatList, ScrollView, ActivityIndicator, Pressable } from "
 import { getTopGainersLosers } from "../api/alphavantage";
 import { Stock } from "../types/stock";
 import StockCard from "../components/StockCard";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/types";
 
 const fallbackData = {
     top_gainers: [
@@ -26,6 +29,7 @@ const ExploreScreen = () => {
     const [topLosers, setTopLosers] = useState<Stock[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -72,7 +76,7 @@ const ExploreScreen = () => {
             </Text>
             {onViewAll && (
                 <Pressable onPress={onViewAll}>
-                    <Text className="text-gray-600 dark:text-gray-400 font-medium">View All</Text>
+                    <Text className="text-gray-600 dark:text-gray-400 font-bold" >View All</Text>
                 </Pressable>
             )}
         </View>
@@ -90,7 +94,9 @@ const ExploreScreen = () => {
             )}
 
             <View className="px-4 mb-3">
-                {renderHeader("Top Gainers", () => console.log("View All Gainers"))}
+                {renderHeader("Top Gainers", () =>
+                    navigation.navigate("ViewAllScreen", { type: "gainers", stocks: topGainers })
+                )}
                 <FlatList
                     data={topGainers.slice(0, 4)}
                     keyExtractor={(item) => item.symbol}
@@ -102,7 +108,9 @@ const ExploreScreen = () => {
             </View>
 
             <View className="px-4 mb-4">
-                {renderHeader("Top Losers", () => console.log("View All Losers"))}
+                {renderHeader("Top Losers", () =>
+                    navigation.navigate("ViewAllScreen", { type: "losers", stocks: topLosers })
+                )}
                 <FlatList
                     data={topLosers.slice(0, 4)}
                     keyExtractor={(item) => item.symbol}

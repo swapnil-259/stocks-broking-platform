@@ -20,7 +20,9 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onPress }) => {
         if (onPress) {
             onPress();
         } else {
-            navigation.navigate("ProductScreen", { symbol: stock.symbol });
+            navigation.navigate("ProductScreen", {
+                symbol: stock.symbol,
+            });
         }
     };
 

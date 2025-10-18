@@ -1,6 +1,8 @@
+import { Stock } from "../types/stock";
+
 export type RootStackParamList = {
     ExploreScreen: undefined;
-    WatchlistScreen: undefined;
     ProductScreen: { symbol: string };
-    ViewAllScreen: { section: string } | undefined;
+    WatchlistScreen: undefined;
+    ViewAllScreen: { type: "gainers" | "losers"; stocks: Stock[] };
 };
