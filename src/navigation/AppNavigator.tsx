@@ -7,7 +7,8 @@ import { useTheme } from '../providers/ThemeProvider';
 import { colorTokens } from '../utils/color-theme';
 import ThemeToggle from '../components/ThemeToggle';
 import ExploreScreen from '../screens/ExploreScreen';
-import WatchlistScreen from '../screens/WatchlistScreen';
+import WatchlistsScreen from '../screens/WatchlistsScreen';
+import WatchlistDetailScreen from '../screens/WatchlistDetailScreen';
 import ProductScreen from '../screens/ProductScreen';
 import ViewAllScreen from '../screens/ViewAllScreen';
 
@@ -34,7 +35,7 @@ function Tabs() {
             })}
         >
             <Tab.Screen name="Explore" component={ExploreScreen} />
-            <Tab.Screen name="Watchlist" component={WatchlistScreen} />
+            <Tab.Screen name="Watchlist" component={WatchlistsScreen} />
         </Tab.Navigator>
     );
 }
@@ -55,6 +56,7 @@ export default function AppNavigator() {
                     component={ProductScreen}
                     options={{ headerShown: true }}
                 />
+                <Stack.Screen name="WatchlistDetail" component={WatchlistDetailScreen} options={{ headerShown: true }} />
                 <Stack.Screen name="ViewAllScreen" component={ViewAllScreen} options={{ headerShown: true }} />
             </Stack.Navigator>
         </NavigationContainer>

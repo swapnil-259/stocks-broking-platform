@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ThemeProvider } from './src/providers/ThemeProvider';
 import AppNavigator from './src/navigation/AppNavigator';
 import { WatchlistProvider } from './src/context/WatchListContext';
+import { WatchlistsCollectionProvider } from './src/context/WatchlistsCollectionContext';
 import { initCacheFromStorage } from './src/utils/cache';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -21,9 +22,11 @@ export default function App() {
   }
   return (
     <ThemeProvider>
-      <WatchlistProvider>
-        <AppNavigator />
-      </WatchlistProvider>
+      <WatchlistsCollectionProvider>
+        <WatchlistProvider>
+          <AppNavigator />
+        </WatchlistProvider>
+      </WatchlistsCollectionProvider>
     </ThemeProvider>
   );
 }
