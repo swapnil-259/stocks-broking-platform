@@ -8,7 +8,7 @@ const BASE_URL = "https://www.alphavantage.co/query";
 const buildUrl = (params: Record<string, string | number>) => {
     const url = `${BASE_URL}?${new URLSearchParams({
         ...params,
-        apikey: "demo"
+        apikey: API_KEY
     } as Record<string, string>).toString()}`;
     console.log("Request URL:", url);
     return url;

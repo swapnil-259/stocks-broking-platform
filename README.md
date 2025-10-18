@@ -1,97 +1,118 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+## groww_assignment_cli — React Native mini-app
 
-# Getting Started
+This repository contains a small React Native application used for a coding assignment. The app demonstrates:
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+- Global light/dark theming (nativewind + ThemeProvider)
+- Bottom tab navigation with two main tabs: Explore (Stocks) and Watchlists
+- Product detail screen with price chart (sparkline) and OHLC-like stats
+- Named watchlists (multiple lists), add/remove stocks to lists, and persistence to AsyncStorage
+- Simple in-memory + AsyncStorage caching layer for API responses
 
-## Step 1: Start Metro
+This README explains how to run the app, configure an API key, and where to look for important pieces of code.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Quick start
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+Prerequisites (standard React Native setup):
+
+- Node >= 18
+- Yarn or npm
+- Xcode (for iOS) / Android Studio (for Android)
+- CocoaPods for iOS native deps
+
+Install JavaScript dependencies:
 
 ```sh
-# Using npm
+# from project root
+npm install
+# or
+yarn install
+```
+
+Install iOS pods (macOS):
+
+```sh
+cd ios && bundle install || true
+bundle exec pod install
+cd ..
+```
+
+Run Metro and the app:
+
+```sh
+# Start Metro
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+# Android
 npm run android
 
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+# iOS
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+If you see build failures related to native modules (charting or svg), run `pod install` again and rebuild from Xcode/Android Studio.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Configuration — AlphaVantage API key
 
-## Step 3: Modify your app
+The app uses AlphaVantage for stock price data. To run real network requests you must provide an API key.
 
-Now that you have successfully run the app, let's make changes!
+1. Copy the example config: `src/config.example.ts` -> `src/config.ts` (this repo keeps `src/config.ts` out of version control).
+2. Edit `src/config.ts` and set `ALPHAVANTAGE_API_KEY` to your key.
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+If `src/config.ts` is missing, the app will use a demo key and/or fallback data in many places. Expect rate limits from AlphaVantage on free keys.
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+Note: The API client lives at `src/api/alphavantage.ts` and currently uses a simple cache layer. Consider adding a rate limiter (e.g., Bottleneck) for heavy testing.
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+## Key project files
 
-## Congratulations! :tada:
+- `App.tsx` — app root, initializes cache and providers (Theme + Watchlist providers) and registers navigation.
+- `src/providers/ThemeProvider.tsx` — manages light/dark theme and syncs nativewind theme tokens.
+- `src/context/WatchlistsCollectionContext.tsx` — named watchlists (create/list/delete/toggle stocks) persisted to AsyncStorage.
+- `src/context/WatchListContext.tsx` — flat watchlist context (single list) for quick bookmarking style persistence.
+- `src/components/PriceChart.tsx` — central chart component (uses react-native-chart-kit + react-native-svg); sanitizes data for reliable rendering.
+- `src/components/WatchlistModal.tsx` — modal UI for creating and toggling watchlists for a stock.
+- `src/screens/ProductScreen.tsx` — product detail page (chart + description + add-to-watchlist modal).
+- `src/screens/ExploreScreen.tsx` — main stocks screen with search and lists (Top Gainers / Top Losers fallback data).
+- `src/screens/WatchlistsScreen.tsx` — grid of named watchlists and drill-in to view stocks in a list.
+- `src/utils/cache.ts` — in-memory cache + AsyncStorage persistence utilities.
 
-You've successfully run and modified your React Native App. :partying_face:
+## Theming notes
 
-### Now what?
+The app uses nativewind for styling and a `ThemeProvider` to persist the user preference. The theme also affects navigation chrome and the chart colors. If you change theme tokens, run a full rebuild on native to see changes in native modules.
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+## Running TypeScript checks and tests
 
-# Troubleshooting
+TypeScript checks (no emit):
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+```sh
+npx tsc --noEmit
+```
 
-# Learn More
+Unit tests (Jest) are present for a minimal smoke test. Run:
 
-To learn more about React Native, take a look at the following resources:
+```sh
+npm test
+```
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+## Debugging and common issues
+
+- Chart rendering: `react-native-chart-kit` depends on `react-native-svg`. If charts appear as blank boxes, ensure `react-native-svg` is properly linked and pods installed, then rebuild.
+- Provider hooks error: if you see "Hook used outside provider", ensure `App.tsx` mounts providers in the correct order and that `initCacheFromStorage()` completes before components attempt to read persisted data.
+- Rate limiting: AlphaVantage free tier will throttle requests. Use local caching (implemented) and avoid firing many requests in parallel.
+
+## Developer notes and next steps
+
+- README updates: keep `src/config.ts` out of repo. Use `src/config.example.ts` to show the shape.
+- Consider adding a rate limiter (Bottleneck) in `src/api/alphavantage.ts` and moving caching into a shared HTTP layer.
+- Remove or redirect debug console.log statements before shipping.
+
+## License
+
+This project is provided as-is for a coding assignment. See individual files for any licenses of third-party libraries.
+
+---
+
+If you want me to (I can):
+
+- wire in Bottleneck for API rate-limiting and update `src/api/alphavantage.ts` (small change),
+- remove debug logs and run the TypeScript checks, or
+- add a short CONTRIBUTING.md with local development tips.
