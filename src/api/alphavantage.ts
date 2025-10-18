@@ -107,7 +107,7 @@ export const getStockOverview = async (symbol: string): Promise<StockOverview> =
             country: "USA",
             sector: "TECHNOLOGY",
             industry: "INFORMATION TECHNOLOGY SERVICES",
-            marketCap: 257071366000,
+            marketCap: 2570,
             peRatio: 44.51,
             dividendPerShare: 6.69,
             dividendYield: 0.0238,
@@ -177,6 +177,45 @@ export const getStockPriceHistory = async (symbol: string): Promise<number[]> =>
         ];
         console.warn("Returning fallback prices for chart display.");
         return fallbackPrices;
+    }
+};
+
+export type OHLCPoint = { date: string; open: number; high: number; low: number; close: number };
+
+export const getStockOHLC = async (symbol: string): Promise<OHLCPoint[]> => {
+    const cacheKey = `ohlc_${symbol}`;
+    const cached = getCache<OHLCPoint[]>(cacheKey);
+    if (cached) return cached;
+
+    try {
+        const url = buildUrl({
+            function: "TIME_SERIES_DAILY",
+            symbol,
+            outputsize: "compact",
+        });
+
+        const response = await axios.get(url);
+        const data = response.data["Time Series (Daily)"];
+        if (!data) return [];
+
+        const sortedDates = Object.keys(data).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+        const points: OHLCPoint[] = sortedDates.map((date) => {
+            const row = data[date];
+            return {
+                date,
+                open: parseFloat(row["1. open"]),
+                high: parseFloat(row["2. high"]),
+                low: parseFloat(row["3. low"]),
+                close: parseFloat(row["4. close"]),
+            };
+        });
+
+        setCache(cacheKey, points, 1000 * 60 * 10);
+        return points;
+    } catch (error: any) {
+        console.log("Error fetching OHLC:", error?.message || error);
+        return [];
     }
 };
 
