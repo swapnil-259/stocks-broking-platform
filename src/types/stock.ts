@@ -25,6 +25,8 @@ export interface StockOverview {
     fiftyDayMA?: number;
     twoHundredDayMA?: number;
     officialSite?: string;
+    beta?: string;
+    profitMargin?: string;
 }
 
 

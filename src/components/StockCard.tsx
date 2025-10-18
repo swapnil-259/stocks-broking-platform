@@ -22,6 +22,7 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onPress }) => {
         } else {
             navigation.navigate("ProductScreen", {
                 symbol: stock.symbol,
+                price: stock.price,
             });
         }
     };

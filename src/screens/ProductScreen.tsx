@@ -13,7 +13,8 @@ import { RootStackParamList } from "../navigation/types";
 import { getStockOverview, getStockPriceHistory } from "../api/alphavantage";
 import WatchlistIcon from "../components/WatchListIcon";
 import { useWatchlist } from "../context/WatchListContext";
-import DescriptionCard from "../components/DescriptionCard"; // ✅ imported
+import DescriptionCard from "../components/DescriptionCard";
+import { Stock, StockOverview } from "../types/stock";
 
 const screenWidth = Dimensions.get("window").width - 32;
 
@@ -21,11 +22,12 @@ type ProductScreenRouteProp = RouteProp<RootStackParamList, "ProductScreen">;
 
 const ProductScreen: React.FC = () => {
     const route = useRoute<ProductScreenRouteProp>();
-    const { symbol } = route.params;
+    const { symbol, price } = route.params;
+    console.log("Received price:", price);
 
     const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
 
-    const [overview, setOverview] = useState<any>(null);
+    const [overview, setOverview] = useState<StockOverview | null>(null);
     const [priceData, setPriceData] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -93,7 +95,7 @@ const ProductScreen: React.FC = () => {
                         {overview?.symbol?.toUpperCase() || symbol}
                     </Text>
                     <Text className="text-2xl font-semibold mt-3 text-blue-600 dark:text-blue-400">
-                        ${overview?.price || priceData[priceData.length - 1] || 0}
+                        ${price || priceData[priceData.length - 1] || 0}
                     </Text>
                 </View>
 
@@ -136,7 +138,7 @@ const ProductScreen: React.FC = () => {
                     </Text>
                 )}
             </View>
-            <DescriptionCard overview={overview} />
+            <DescriptionCard overview={overview} price={price} />
         </ScrollView>
     );
 };

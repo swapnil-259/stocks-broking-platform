@@ -1,11 +1,13 @@
 import React from "react";
 import { View, Text } from "react-native";
+import { StockOverview } from "../types/stock";
 
 interface DescriptionCardProps {
-    overview: any;
+    overview: StockOverview | null;
+    price: number;
 }
 
-const DescriptionCard: React.FC<DescriptionCardProps> = ({ overview }) => {
+const DescriptionCard: React.FC<DescriptionCardProps> = ({ overview, price }) => {
     return (
         <View className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-md mb-8">
             <Text className="text-xl font-semibold text-black dark:text-white mb-2">
@@ -42,7 +44,7 @@ const DescriptionCard: React.FC<DescriptionCardProps> = ({ overview }) => {
             <View className="flex-row justify-between mb-3">
                 <Text className="text-gray-500 dark:text-gray-400 text-sm">Current Price</Text>
                 <Text className="text-blue-600 dark:text-blue-400 font-semibold">
-                    ${overview?.price || "--"}
+                    ${price || "--"}
                 </Text>
             </View>
 
