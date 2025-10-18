@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { View } from "react-native";
 import { StatusBar } from 'react-native';
 import { colorScheme } from "nativewind";
 import { themes } from "../utils/color-theme";
+import { getCache, setCache } from '../utils/cache';
 
 interface ThemeProviderProps {
     children: React.ReactNode;
@@ -19,13 +20,16 @@ export const ThemeContext = createContext<ThemeContextType>({
 });
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-    const [currentTheme, setCurrentTheme] = useState<"light" | "dark">("light");
-
-    console.log('ThemeProvider - currentTheme:', currentTheme);
+    const persisted = getCache<'light' | 'dark'>('app_theme');
+    const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(persisted ?? 'light');
+    useEffect(() => {
+        colorScheme.set(currentTheme);
+    }, [currentTheme]);
 
     const toggleTheme = () => {
         const newTheme = currentTheme === "light" ? "dark" : "light";
         setCurrentTheme(newTheme);
+        setCache('app_theme', newTheme, 1000 * 60 * 60 * 24 * 365);
         colorScheme.set(newTheme);
     };
 
@@ -45,4 +49,4 @@ export const useTheme = () => {
         throw new Error('useTheme must be used within a ThemeProvider');
     }
     return context;
-}; 
+};

@@ -15,8 +15,8 @@ export interface StockOverview {
     country: string;
     sector: string;
     industry: string;
-    marketCap: number;
-    peRatio: number;
+    marketCap?: number;
+    peRatio?: number;
     dividendPerShare?: number;
     dividendYield?: number;
     eps?: number;
@@ -25,4 +25,11 @@ export interface StockOverview {
     fiftyDayMA?: number;
     twoHundredDayMA?: number;
     officialSite?: string;
+}
+
+
+export interface StockResponse {
+    ticker: string;
+    price: string;
+    change_percentage: string;
 }

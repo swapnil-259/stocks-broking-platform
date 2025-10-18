@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, ScrollView, ActivityIndicator, Pressable } from "react-native";
+import { View, Text, FlatList, ScrollView, Pressable } from "react-native";
 import { getTopGainersLosers } from "../api/alphavantage";
 import { Stock } from "../types/stock";
 import StockCard from "../components/StockCard";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
+import StateView from "../components/StateView";
 
 const fallbackData = {
     top_gainers: [
@@ -59,14 +60,7 @@ const ExploreScreen = () => {
     }, []);
 
     if (loading) {
-        return (
-            <View className="flex-1 items-center justify-center bg-gray-100 dark:bg-gray-900">
-                <ActivityIndicator size="large" color="#2563eb" />
-                <Text className="text-gray-700 dark:text-gray-300 mt-3">
-                    Fetching top gainers & losers...
-                </Text>
-            </View>
-        );
+        return <StateView loading />;
     }
 
     const renderHeader = (title: string, onViewAll?: () => void) => (
