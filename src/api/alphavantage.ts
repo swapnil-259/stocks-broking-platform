@@ -1,14 +1,44 @@
 import axios from "axios";
 import { Stock, StockOverview, StockResponse } from "../types/stock";
 import { getCache, setCache } from "../utils/cache";
+const REQUEST_SPACING_MS = 300;
+let requestQueue: Array<() => void> = [];
+let processingQueue = false;
 
-const API_KEY = "1R2SZV1GSJV1VOT6";
+const processQueue = async () => {
+    if (processingQueue) return;
+    processingQueue = true;
+    try {
+        while (requestQueue.length > 0) {
+            const job = requestQueue.shift();
+            if (!job) break;
+            job();
+            await new Promise((res) => setTimeout(() => res(undefined), REQUEST_SPACING_MS));
+        }
+    } finally {
+        processingQueue = false;
+    }
+};
+
+const enqueueRequest = <T>(fn: () => Promise<T>): Promise<T> => {
+    return new Promise<T>((resolve, reject) => {
+        const job = () => {
+            fn().then(resolve).catch(reject);
+        };
+        requestQueue.push(job);
+        void processQueue();
+    });
+};
+
+const queuedGet = <T = unknown>(url: string) => enqueueRequest(() => axios.get<T>(url));
+
+const API_KEY = "LDHCN0X4SL719NQ1";
 const BASE_URL = "https://www.alphavantage.co/query";
 
 const buildUrl = (params: Record<string, string | number>) => {
     const url = `${BASE_URL}?${new URLSearchParams({
         ...params,
-        apikey: API_KEY
+        apikey: API_KEY,
     } as Record<string, string>).toString()}`;
     console.log("Request URL:", url);
     return url;
@@ -46,6 +76,7 @@ export const getTopGainersLosers = async (): Promise<{
         })) || [];
 
         const result = { top_gainers, top_losers };
+        console.log("Parsed Top Gainers/Losers:", result);
         setCache(cacheKey, result, 1000 * 60 * 5);
         return result;
     } catch (error: unknown) {
@@ -177,6 +208,37 @@ export const getStockPriceHistory = async (symbol: string): Promise<number[]> =>
         ];
         console.warn("Returning fallback prices for chart display.");
         return fallbackPrices;
+    }
+};
+
+
+export const symbolSearch = async (keywords: string): Promise<import("../types/stock").Stock[]> => {
+    const q = keywords?.trim();
+    if (!q) return [];
+    const cacheKey = `symbol_search_${q.toLowerCase()}`;
+    const cached = getCache<import("../types/stock").Stock[]>(cacheKey);
+    if (cached) return cached;
+
+    try {
+        const url = buildUrl({ function: "SYMBOL_SEARCH", keywords: q });
+        const response = await axios.get(url);
+        const data = response.data;
+        console.log("Symbol Search Response for", q, ":", data);
+        const matches = data?.bestMatches || [];
+
+        const results = matches.map((m: any) => ({
+            symbol: m['1. symbol'] || m.symbol || '',
+            name: m['2. name'] || m.name || '',
+            price: NaN,
+            changePercent: 0,
+            logoUrl: (m['1. symbol'] ? `https://logo.clearbit.com/${m['1. symbol'].toLowerCase()}.com` : undefined),
+        })).filter((s: any) => s.symbol);
+
+        setCache(cacheKey, results, 1000 * 60 * 5);
+        return results;
+    } catch (error: unknown) {
+        console.warn('Symbol search failed:', error instanceof Error ? error.message : String(error));
+        return [];
     }
 };
 

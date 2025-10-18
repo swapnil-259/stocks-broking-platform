@@ -44,7 +44,7 @@ const DescriptionCard: React.FC<DescriptionCardProps> = ({ overview, price, pric
                 <View className="h-[1px] bg-gray-200 dark:bg-gray-700 my-4" />
 
                 <View className="mb-4">
-                    <View className="flex-row justify-between mb-2">
+                    <View className="flex-row mb-2">
                         <View>
                             <Text className="text-gray-500 dark:text-gray-400 text-xs">52-Week Low</Text>
                             <Text className="text-black dark:text-white font-semibold text-sm">
@@ -57,8 +57,8 @@ const DescriptionCard: React.FC<DescriptionCardProps> = ({ overview, price, pric
                                 Current price: ${price.toFixed(2)}
                             </Text>
                         </View>
-                        <View className="items-end">
-                            <Text className="text-gray-500 dark:text-gray-400 text-xs">52-Week High</Text>
+                        <View >
+                            <Text className="text-gray-500 dark:text-gray-400 text-xs ">52-Week High</Text>
                             <Text className="text-black dark:text-white font-semibold text-sm">
                                 ${overview?.fiftyTwoWeekHigh || "--"}
                             </Text>

@@ -67,8 +67,9 @@ const ProductScreen: React.FC = () => {
 
     if (loading) {
         return (
-            <View className="flex-1 items-center justify-center">
-                <ActivityIndicator size="large" />
+            <View className="flex-1 items-center justify-center" style={{ backgroundColor: tokens.background }}>
+                <ActivityIndicator size="large" color={tokens.primary} />
+                <Text className="mt-2" style={{ color: tokens.text }}>Loading...</Text>
             </View>
         );
     }

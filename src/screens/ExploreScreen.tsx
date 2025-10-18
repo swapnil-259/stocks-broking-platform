@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { View, Text, FlatList, ScrollView, Pressable, TextInput } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { getTopGainersLosers } from "../api/alphavantage";
+import { getTopGainersLosers, symbolSearch, getStockOverview, getStockPriceHistory } from "../api/alphavantage";
 import { Stock } from "../types/stock";
 import StockCard from "../components/StockCard";
 import { useNavigation } from "@react-navigation/native";
@@ -37,6 +37,41 @@ const ExploreScreen = () => {
     const { theme } = useTheme();
     const tokens = colorTokens[theme];
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<Stock[]>([]);
+    const [searching, setSearching] = useState(false);
+    const debouncedSearch = useMemo(() => {
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        return (q: string) => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(async () => {
+                if (!q || q.trim().length < 2) {
+                    setSearchResults([]);
+                    setSearching(false);
+                    return;
+                }
+                try {
+                    setSearching(true);
+                    const res = await symbolSearch(q.trim());
+                    setSearchResults(res);
+                } catch (e) {
+                    console.warn('Search failed', e);
+                    setSearchResults([]);
+                } finally {
+                    setSearching(false);
+                }
+            }, 500);
+        };
+    }, []);
+
+    useEffect(() => {
+        debouncedSearch(searchQuery);
+    }, [searchQuery, debouncedSearch]);
+
+    const onSelectResult = (sym: string) => {
+        setSearchResults([]);
+        setSearchQuery(sym);
+        navigation.getParent()?.navigate('ProductScreen', { symbol: sym, price: 0 });
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -89,12 +124,13 @@ const ExploreScreen = () => {
                     ⚠ {error}
                 </Text>
             )}
-            <View className="px-4 mb-3">
+            <View className="px-4 mb-3 relative">
                 <View className="flex-row items-center">
                     <TextInput
                         placeholder="Search by symbol"
                         value={searchQuery}
                         onChangeText={setSearchQuery}
+
                         className="flex-1 rounded-md p-3 bg-white dark:bg-transparent text-black dark:text-white border border-gray-200 dark:border-white/10"
                         placeholderTextColor={theme === 'dark' ? 'rgba(255,255,255,0.6)' : '#666'}
                     />
@@ -104,14 +140,44 @@ const ExploreScreen = () => {
                         </Pressable>
                     )}
                 </View>
+                {searching && (
+                    <Text className="text-sm text-gray-500 mt-2">Searching...</Text>
+                )}
+
+                {searchResults.length > 0 && (
+                    <View className="absolute left-4 right-4 top-16 z-50">
+                        <View
+                            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg"
+                            style={{ maxHeight: 256 }}
+                            pointerEvents="box-none"
+                        >
+                            <ScrollView nestedScrollEnabled>
+                                {searchResults.map((item) => (
+                                    <Pressable
+                                        key={item.symbol}
+                                        onPress={() => {
+                                            console.log("Pressed:", item.symbol);
+                                            navigation.navigate('ProductScreen', { symbol: item.symbol, price: 0 });
+                                        }}
+                                        className="px-3 py-2 border-b border-gray-100 dark:border-gray-700"
+                                    >
+                                        <Text className="text-sm font-semibold text-black dark:text-white">{item.symbol}</Text>
+                                        <Text className="text-xs text-gray-600 dark:text-gray-300">{item.name}</Text>
+                                    </Pressable>
+                                ))}
+                            </ScrollView>
+                        </View>
+                    </View>
+                )}
+
             </View>
 
             <View className="px-4 mb-3">
                 {renderHeader("Top Gainers", () =>
-                    navigation.navigate("ViewAllScreen", { type: "gainers", stocks: topGainers })
+                    navigation.getParent()?.navigate("ViewAllScreen", { type: "gainers", stocks: topGainers })
                 )}
                 <FlatList
-                    data={topGainers.filter(s => s.symbol.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 4)}
+                    data={topGainers.slice(0, 4)}
                     keyExtractor={(item) => item.symbol}
                     numColumns={2}
                     renderItem={({ item }) => <StockCard stock={item} />}
@@ -122,10 +188,10 @@ const ExploreScreen = () => {
 
             <View className="px-4 mb-4">
                 {renderHeader("Top Losers", () =>
-                    navigation.navigate("ViewAllScreen", { type: "losers", stocks: topLosers })
+                    navigation.getParent()?.navigate("ViewAllScreen", { type: "losers", stocks: topLosers })
                 )}
                 <FlatList
-                    data={topLosers.filter(s => s.symbol.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 4)}
+                    data={topLosers.slice(0, 4)}
                     keyExtractor={(item) => item.symbol}
                     numColumns={2}
                     renderItem={({ item }) => <StockCard stock={item} />}
