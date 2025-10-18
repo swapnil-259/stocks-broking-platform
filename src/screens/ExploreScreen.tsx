@@ -42,34 +42,39 @@ const fallbackData = {
 };
 
 const ExploreScreen: React.FC = () => {
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    const { theme } = useTheme();
+    const tokens = colorTokens[theme];
+
     const [topGainers, setTopGainers] = useState<Stock[]>([]);
     const [topLosers, setTopLosers] = useState<Stock[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-    const { theme } = useTheme();
-    const tokens = colorTokens[theme];
-
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [searchResults, setSearchResults] = useState<Stock[]>([]);
-    const [searching, setSearching] = useState<boolean>(false);
-    const [showDropdown, setShowDropdown] = useState<boolean>(false);
+    const [searching, setSearching] = useState(false);
 
     const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+    const [showRecentModal, setShowRecentModal] = useState(false);
+
     useEffect(() => {
         setRecentSearches(getRecentSearches());
     }, []);
 
-    const onSelectRecentSearch = (item: RecentSearch) => {
-        navigation.navigate("ProductScreen", { symbol: item.symbol, price: 0 });
-        addRecentSearch({ ...item, timestamp: Date.now() });
+    const onSelectSearchItem = (symbol: string, name?: string) => {
+        const item: RecentSearch = { symbol, name, timestamp: Date.now() };
+        addRecentSearch(item);
         setRecentSearches(getRecentSearches());
-        setShowDropdown(false);
-        setSearchQuery(item.symbol);
+        setSearchQuery(symbol);
+        setSearchResults([]);
+        setShowRecentModal(false);
+
+        setTimeout(() => {
+            navigation.navigate("ProductScreen", { symbol, price: 0 });
+        }, 0);
     };
 
-    // Debounced search
     const debouncedSearch = useMemo(() => {
         let timer: ReturnType<typeof setTimeout> | null = null;
         return (q: string) => {
@@ -78,18 +83,15 @@ const ExploreScreen: React.FC = () => {
                 if (!q || q.trim().length < 2) {
                     setSearchResults([]);
                     setSearching(false);
-                    setShowDropdown(false);
                     return;
                 }
                 try {
                     setSearching(true);
                     const res = await symbolSearch(q.trim());
                     setSearchResults(res);
-                    setShowDropdown(true);
                 } catch (e) {
                     console.warn("Search failed", e);
                     setSearchResults([]);
-                    setShowDropdown(false);
                 } finally {
                     setSearching(false);
                 }
@@ -100,6 +102,7 @@ const ExploreScreen: React.FC = () => {
     useEffect(() => {
         debouncedSearch(searchQuery);
     }, [searchQuery, debouncedSearch]);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -112,8 +115,8 @@ const ExploreScreen: React.FC = () => {
                     setTopLosers(fallbackData.top_losers);
                     setError("Showing fallback data due to API issue.");
                 }
-            } catch (error) {
-                console.warn("Failed to load top gainers/losers:", error);
+            } catch (err) {
+                console.warn("Failed to load top gainers/losers:", err);
                 setTopGainers(fallbackData.top_gainers);
                 setTopLosers(fallbackData.top_losers);
                 setError("Unable to fetch live data. Showing static stocks.");
@@ -145,7 +148,6 @@ const ExploreScreen: React.FC = () => {
                         ⚠ {error}
                     </Text>
                 )}
-
                 <View className="px-4 mb-3">
                     <View className="flex-row items-center">
                         <TextInput
@@ -159,7 +161,7 @@ const ExploreScreen: React.FC = () => {
                             <Pressable
                                 onPress={() => {
                                     setSearchQuery("");
-                                    setShowDropdown(false);
+                                    setSearchResults([]);
                                 }}
                                 className="ml-2 p-2"
                             >
@@ -173,25 +175,40 @@ const ExploreScreen: React.FC = () => {
                     </View>
                     {searching && <Text className="text-sm text-gray-500 mt-2">Searching...</Text>}
                 </View>
-                {recentSearches.length > 0 && (
-                    <View className="px-4 mb-3">
-                        <View className="flex-row justify-between items-center mb-2">
-                            <Text className="text-lg font-semibold text-black dark:text-white">
-                                Recent Searches
-                            </Text>
-                            <Pressable onPress={() => setShowDropdown(true)}>
-                                <Text className="text-gray-600 dark:text-gray-400 font-bold">View All</Text>
-                            </Pressable>
-                        </View>
 
+                {searchQuery.length > 0 && searchResults.length > 0 && (
+                    <View className="px-4 mb-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md max-h-64">
+                        <ScrollView nestedScrollEnabled>
+                            {searchResults.map((item) => (
+                                <Pressable
+                                    key={item.symbol}
+                                    onPress={() => onSelectSearchItem(item.symbol, item.name)}
+                                    className="px-3 py-2 border-b border-gray-200 dark:border-gray-700"
+                                >
+                                    <Text className="text-sm font-semibold text-black dark:text-white">{item.symbol}</Text>
+                                    {item.name && (
+                                        <Text className="text-xs text-gray-600 dark:text-gray-300">{item.name}</Text>
+                                    )}
+                                </Pressable>
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
+                {recentSearches.length > 0 && (
+                    <View className="px-4 mb-3 flex">
+                        <View className="flex-row justify-between items-center mb-2">
+                            <Text className="text-lg font-semibold text-black dark:text-white">Recent Searches</Text>
+                        </View>
                         {recentSearches.slice(0, 3).map((item) => (
                             <Pressable
                                 key={item.symbol + item.timestamp}
-                                onPress={() => onSelectRecentSearch(item)}
+                                onPress={() => onSelectSearchItem(item.symbol, item.name)}
                                 className="px-3 py-2 border-b border-gray-200 dark:border-gray-700"
                             >
                                 <Text className="text-sm font-semibold text-black dark:text-white">{item.symbol}</Text>
-                                {item.name && <Text className="text-xs text-gray-600 dark:text-gray-300">{item.name}</Text>}
+                                {item.name && (
+                                    <Text className="text-xs text-gray-600 dark:text-gray-300">{item.name}</Text>
+                                )}
                             </Pressable>
                         ))}
                     </View>
@@ -209,7 +226,6 @@ const ExploreScreen: React.FC = () => {
                         scrollEnabled={false}
                     />
                 </View>
-
                 <View className="px-4 mb-4">
                     {renderHeader("Top Losers", () =>
                         navigation.getParent()?.navigate("ViewAllScreen", { type: "losers", stocks: topLosers })
@@ -224,37 +240,32 @@ const ExploreScreen: React.FC = () => {
                     />
                 </View>
             </ScrollView>
-            {searchResults.length > 0 && (<Modal
-                visible={showDropdown}
+
+            <Modal
+                visible={showRecentModal}
                 transparent
                 animationType="fade"
-                onRequestClose={() => setShowDropdown(false)}
+                onRequestClose={() => setShowRecentModal(false)}
             >
-                <Pressable
-                    className="flex-1 bg-black/20"
-                    onPress={() => setShowDropdown(false)}
-                >
-                    <View className={`mt-32 mx-4 rounded-md border ${theme === "dark" ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-white"} max-h-96`}>
+                <Pressable className="flex-1 bg-black/20" onPress={() => setShowRecentModal(false)}>
+                    <View className="mt-32 mx-4 rounded-md border max-h-96 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                         <ScrollView>
-                            {(() => {
-                                const dropdownItems: RecentSearch[] = searchResults.length > 0
-                                    ? searchResults.map((s) => ({ symbol: s.symbol, name: s.name, timestamp: Date.now() }))
-                                    : getRecentSearches();
-                                return dropdownItems.map((item) => (
-                                    <Pressable
-                                        key={item.symbol + item.timestamp}
-                                        onPress={() => onSelectRecentSearch(item)}
-                                        className="px-3 py-2 border-b border-gray-200 dark:border-gray-700"
-                                    >
-                                        <Text className="text-sm font-semibold text-black dark:text-white">{item.symbol}</Text>
-                                        {item.name && <Text className="text-xs text-gray-600 dark:text-gray-300">{item.name}</Text>}
-                                    </Pressable>
-                                ));
-                            })()}
+                            {recentSearches.map((item) => (
+                                <Pressable
+                                    key={item.symbol + item.timestamp}
+                                    onPress={() => onSelectSearchItem(item.symbol, item.name)}
+                                    className="px-3 py-2 border-b border-gray-200 dark:border-gray-700"
+                                >
+                                    <Text className="text-sm font-semibold text-black dark:text-white">{item.symbol}</Text>
+                                    {item.name && (
+                                        <Text className="text-xs text-gray-600 dark:text-gray-300">{item.name}</Text>
+                                    )}
+                                </Pressable>
+                            ))}
                         </ScrollView>
                     </View>
                 </Pressable>
-            </Modal>)}
+            </Modal>
         </View>
     );
 };
