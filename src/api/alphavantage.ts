@@ -1,38 +1,9 @@
 import axios from "axios";
-import { Stock, StockOverview, StockResponse } from "../types/stock";
+import { Stock, StockOverview, StockResponse, SymbolSearchResult } from "../types/stock";
 import { getCache, setCache } from "../utils/cache";
-const REQUEST_SPACING_MS = 300;
-let requestQueue: Array<() => void> = [];
-let processingQueue = false;
 
-const processQueue = async () => {
-    if (processingQueue) return;
-    processingQueue = true;
-    try {
-        while (requestQueue.length > 0) {
-            const job = requestQueue.shift();
-            if (!job) break;
-            job();
-            await new Promise((res) => setTimeout(() => res(undefined), REQUEST_SPACING_MS));
-        }
-    } finally {
-        processingQueue = false;
-    }
-};
 
-const enqueueRequest = <T>(fn: () => Promise<T>): Promise<T> => {
-    return new Promise<T>((resolve, reject) => {
-        const job = () => {
-            fn().then(resolve).catch(reject);
-        };
-        requestQueue.push(job);
-        void processQueue();
-    });
-};
-
-const queuedGet = <T = unknown>(url: string) => enqueueRequest(() => axios.get<T>(url));
-
-const API_KEY = "LDHCN0X4SL719NQ1";
+const API_KEY = "demo";
 const BASE_URL = "https://www.alphavantage.co/query";
 
 const buildUrl = (params: Record<string, string | number>) => {
@@ -126,8 +97,8 @@ export const getStockOverview = async (symbol: string): Promise<StockOverview> =
         setCache(cacheKey, result, 1000 * 60 * 5);
         return result;
 
-    } catch (error: any) {
-        console.log("Error fetching stock overview:", error?.message || error);
+    } catch (error: unknown) {
+        console.log("Error fetching stock overview:", error instanceof Error ? error.message : String(error));
         const fallback: StockOverview = {
             symbol: "IBM",
             name: "International Business Machines",
@@ -213,7 +184,7 @@ export const getStockPriceHistory = async (symbol: string): Promise<number[]> =>
 
 
 export const symbolSearch = async (keywords: string): Promise<import("../types/stock").Stock[]> => {
-    const q = keywords?.trim();
+    const q = "tesco";
     if (!q) return [];
     const cacheKey = `symbol_search_${q.toLowerCase()}`;
     const cached = getCache<import("../types/stock").Stock[]>(cacheKey);

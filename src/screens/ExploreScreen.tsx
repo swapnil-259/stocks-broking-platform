@@ -62,25 +62,30 @@ const ExploreScreen: React.FC = () => {
         setRecentSearches(getRecentSearches());
     }, []);
 
-    const onSelectSearchItem = (symbol: string, name?: string) => {
+    const onSelectSearchItem = (symbol: string, name?: string, updateSearchBar = true) => {
         const item: RecentSearch = { symbol, name, timestamp: Date.now() };
         addRecentSearch(item);
         setRecentSearches(getRecentSearches());
-        setSearchQuery(symbol);
         setSearchResults([]);
         setShowRecentModal(false);
 
+        if (updateSearchBar) {
+            setSearchQuery(symbol);
+        }
+
         setTimeout(() => {
             navigation.navigate("ProductScreen", { symbol, price: 0 });
+            setSearchQuery("");
         }, 0);
     };
 
     const debouncedSearch = useMemo(() => {
         let timer: ReturnType<typeof setTimeout> | null = null;
         return (q: string) => {
+            console.log("debouncedSearch called with query:", q);
             if (timer) clearTimeout(timer);
             timer = setTimeout(async () => {
-                if (!q || q.trim().length < 2) {
+                if (!q || q.trim().length < 1) {
                     setSearchResults([]);
                     setSearching(false);
                     return;
@@ -88,6 +93,7 @@ const ExploreScreen: React.FC = () => {
                 try {
                     setSearching(true);
                     const res = await symbolSearch(q.trim());
+                    console.log("Search results for", q, ":", res);
                     setSearchResults(res);
                 } catch (e) {
                     console.warn("Search failed", e);

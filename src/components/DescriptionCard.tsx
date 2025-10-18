@@ -10,7 +10,6 @@ interface DescriptionCardProps {
 }
 
 const DescriptionCard: React.FC<DescriptionCardProps> = ({ overview, price, priceChange = 0, logo }) => {
-    const isPositive = priceChange >= 0
 
     return (
         <View className="bg-white dark:bg-gray-800 rounded-2xl shadow-md mb-8">

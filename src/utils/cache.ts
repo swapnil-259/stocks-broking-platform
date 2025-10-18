@@ -6,7 +6,7 @@ type CacheEntry<T> = {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_PREFIX = 'cache:';
-const memoryCache = new Map<string, CacheEntry<any>>();
+const memoryCache = new Map<string, CacheEntry<unknown>>();
 export async function initCacheFromStorage(): Promise<void> {
     try {
         const keys = await AsyncStorage.getAllKeys();
@@ -17,7 +17,7 @@ export async function initCacheFromStorage(): Promise<void> {
         for (const [storageKey, value] of items) {
             if (!value) continue;
             try {
-                const entry = JSON.parse(value) as CacheEntry<any>;
+                const entry = JSON.parse(value) as CacheEntry<unknown>;
                 const logicalKey = storageKey.replace(STORAGE_PREFIX, '');
                 if (Date.now() <= entry.expiresAt) {
                     memoryCache.set(logicalKey, entry);

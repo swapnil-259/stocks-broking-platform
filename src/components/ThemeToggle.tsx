@@ -1,4 +1,5 @@
 import { Pressable, View } from 'react-native';
+import type { ComponentProps } from 'react';
 import { useTheme } from '../providers/ThemeProvider';
 import Feather from '@react-native-vector-icons/feather';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
@@ -35,14 +36,15 @@ const ThemeToggle = () => {
         </Pressable>
     );
 };
+type IconName = ComponentProps<typeof Feather>['name'];
 
-const Icon = (props: any) => {
+const Icon = (props: { icon: IconName }) => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
 
     return (
         <View className='w-10 h-10 relative z-50 rounded-full items-center justify-center flex flex-row'>
-            <Feather name={props.icon} size={20} color={`${isDark ? 'white' : 'black'}`} />
+            <Feather name={props.icon} size={20} color={isDark ? 'white' : 'black'} />
         </View>
     );
 };

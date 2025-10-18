@@ -35,3 +35,11 @@ export interface StockResponse {
     price: string;
     change_percentage: string;
 }
+
+export interface SymbolSearchResult {
+    symbol: string;
+    name: string;
+    price: number;
+    changePercent: number;
+    logoUrl?: string;
+}
