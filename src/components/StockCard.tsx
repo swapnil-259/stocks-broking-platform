@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, Image, Pressable } from "react-native";
 import { Stock } from "../types/stock";
+import WatchlistIcon from './WatchListIcon';
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../navigation/types";
 
@@ -39,6 +40,9 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onPress }) => {
             className="bg-white dark:bg-gray-800 rounded-xl p-4 m-2 w-[45%] shadow-md"
         >
             <View className="flex items-center">
+                <View style={{ position: 'absolute', right: 10, top: 10 }}>
+                    <WatchlistIcon symbol={stock.symbol} size={20} />
+                </View>
                 <Image
                     source={{ uri: imageUri }}
                     className="w-12 h-12 mb-3"

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, ScrollView, Pressable } from "react-native";
+import { View, Text, FlatList, ScrollView, Pressable, TextInput } from "react-native";
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getTopGainersLosers } from "../api/alphavantage";
 import { Stock } from "../types/stock";
 import StockCard from "../components/StockCard";
@@ -7,6 +8,8 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import StateView from "../components/StateView";
+import { useTheme } from '../providers/ThemeProvider';
+import { colorTokens } from '../utils/color-theme';
 
 const fallbackData = {
     top_gainers: [
@@ -31,6 +34,9 @@ const ExploreScreen = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    const { theme } = useTheme();
+    const tokens = colorTokens[theme];
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -77,22 +83,35 @@ const ExploreScreen = () => {
     );
 
     return (
-        <ScrollView
-            className="flex-1 bg-gray-100 dark:bg-gray-900"
-            contentContainerStyle={{ paddingVertical: 8 }}
-        >
+        <ScrollView className="flex-1 bg-gray-100 dark:bg-gray-900" contentContainerStyle={{ paddingVertical: 8 }}>
             {error && (
                 <Text className="text-yellow-600 dark:text-yellow-400 text-center text-sm mb-2">
                     ⚠ {error}
                 </Text>
             )}
+            <View className="px-4 mb-3">
+                <View className="flex-row items-center">
+                    <TextInput
+                        placeholder="Search by symbol"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        className="flex-1 rounded-md p-3 bg-white dark:bg-transparent text-black dark:text-white border border-gray-200 dark:border-white/10"
+                        placeholderTextColor={theme === 'dark' ? 'rgba(255,255,255,0.6)' : '#666'}
+                    />
+                    {searchQuery.length > 0 && (
+                        <Pressable onPress={() => setSearchQuery('')} className="ml-2 p-2" accessibilityLabel="Clear search">
+                            <Icon name="close" size={18} color={theme === 'dark' ? 'rgba(255,255,255,0.7)' : '#666'} />
+                        </Pressable>
+                    )}
+                </View>
+            </View>
 
             <View className="px-4 mb-3">
                 {renderHeader("Top Gainers", () =>
                     navigation.navigate("ViewAllScreen", { type: "gainers", stocks: topGainers })
                 )}
                 <FlatList
-                    data={topGainers.slice(0, 4)}
+                    data={topGainers.filter(s => s.symbol.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 4)}
                     keyExtractor={(item) => item.symbol}
                     numColumns={2}
                     renderItem={({ item }) => <StockCard stock={item} />}
@@ -106,7 +125,7 @@ const ExploreScreen = () => {
                     navigation.navigate("ViewAllScreen", { type: "losers", stocks: topLosers })
                 )}
                 <FlatList
-                    data={topLosers.slice(0, 4)}
+                    data={topLosers.filter(s => s.symbol.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 4)}
                     keyExtractor={(item) => item.symbol}
                     numColumns={2}
                     renderItem={({ item }) => <StockCard stock={item} />}

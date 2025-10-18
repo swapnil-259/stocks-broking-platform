@@ -8,6 +8,7 @@ import {
     Dimensions,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import WatchlistIcon from '../components/WatchListIcon';
 import { useRoute, RouteProp } from "@react-navigation/native";
 import { getStockOverview, getStockPriceHistory } from "../api/alphavantage";
 import DescriptionCard from "../components/DescriptionCard";
@@ -81,23 +82,9 @@ const ProductScreen: React.FC = () => {
                         </Text>
                     </View>
 
-                    <Pressable
-                        onPress={() => setModalVisible(true)}
-                        className="ml-3 p-2 rounded-full bg-gray-200 dark:bg-gray-800"
-                    >
-                        {
-                            (() => {
-                                const added = isInWatchlist(symbol) || isInAnyList(symbol);
-                                return (
-                                    <Icon
-                                        name={added ? 'bookmark' : 'bookmark-outline'}
-                                        size={28}
-                                        color={added ? '#2563eb' : '#6b7280'}
-                                    />
-                                );
-                            })()
-                        }
-                    </Pressable>
+                    <View className="ml-3 p-2 rounded-full bg-gray-200 dark:bg-gray-800">
+                        <WatchlistIcon symbol={symbol} size={28} onPress={() => setModalVisible(true)} />
+                    </View>
                 </View>
 
                 <DescriptionCard overview={overview} price={price} />
