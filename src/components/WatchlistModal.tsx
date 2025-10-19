@@ -35,7 +35,6 @@ export default function WatchlistModal({ visible, onClose, stock }: Props) {
 
     const { theme } = useTheme();
     const tokens = colorTokens[theme];
-
     return (
         <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
             <Pressable className="flex-1 justify-end bg-black/30" onPress={handleClose}>
@@ -65,14 +64,14 @@ export default function WatchlistModal({ visible, onClose, stock }: Props) {
                             </View>
                         </TouchableOpacity>
                     </View>
-
                     <FlatList
                         data={Object.keys(lists)}
                         keyExtractor={(item) => item}
                         className="flex-grow-0"
-                        keyboardShouldPersistTaps="handled"
+                        keyboardShouldPersistTaps="always"
                         renderItem={({ item }) => {
                             const checked = stock ? isInList(item, stock.symbol) : false;
+                            console.log('Rendering list item:', item, 'checked=', checked);
                             return (
                                 <Pressable
                                     onPress={() => {
@@ -87,7 +86,7 @@ export default function WatchlistModal({ visible, onClose, stock }: Props) {
                                         {checked && <Icon name="check" size={16} color="#fff" />}
                                     </View>
 
-                                    <Text className="text-base text-black dark:text-white">{item}</Text>
+                                    <Text className="text-base text-black dark:text-white">{item}{' '}</Text>
                                 </Pressable>
                             );
                         }}
@@ -95,6 +94,7 @@ export default function WatchlistModal({ visible, onClose, stock }: Props) {
                             <Text className="text-center py-4 text-gray-500 dark:text-gray-400">No watchlists yet</Text>
                         )}
                     />
+
 
                     <Pressable onPress={handleClose} className="mt-6 items-center py-2 rounded-md bg-gray-100 dark:bg-white/5">
                         <Text className="text-gray-500 dark:text-gray-400 font-medium">Close</Text>

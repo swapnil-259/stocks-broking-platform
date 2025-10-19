@@ -184,7 +184,7 @@ export const getStockPriceHistory = async (symbol: string): Promise<number[]> =>
 
 
 export const symbolSearch = async (keywords: string): Promise<import("../types/stock").Stock[]> => {
-    const q = "tesco";
+    const q = keywords?.trim();
     if (!q) return [];
     const cacheKey = `symbol_search_${q.toLowerCase()}`;
     const cached = getCache<import("../types/stock").Stock[]>(cacheKey);
