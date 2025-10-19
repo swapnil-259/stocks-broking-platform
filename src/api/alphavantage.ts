@@ -3,7 +3,7 @@ import { Stock, StockOverview, StockResponse, SymbolSearchResult } from "../type
 import { getCache, setCache } from "../utils/cache";
 
 
-const API_KEY = "demo";
+const API_KEY = "2CHQF33ENSX7Q4SU"
 const BASE_URL = "https://www.alphavantage.co/query";
 
 const buildUrl = (params: Record<string, string | number>) => {
@@ -191,24 +191,26 @@ export const symbolSearch = async (keywords: string): Promise<import("../types/s
     if (cached) return cached;
 
     try {
-        const url = buildUrl({ function: "SYMBOL_SEARCH", keywords: q });
+        const url = buildUrl({ function: "SYMBOL_SEARCH", keywords: "tesco" });
         const response = await axios.get(url);
         const data = response.data;
         console.log("Symbol Search Response for", q, ":", data);
         const matches = data?.bestMatches || [];
 
-        const results = matches.map((m: any) => ({
-            symbol: m['1. symbol'] || m.symbol || '',
-            name: m['2. name'] || m.name || '',
+        const results = matches.map((m: SymbolSearchResult) => ({
+            symbol: m.symbol || '',
+            name: m.name || '',
             price: NaN,
             changePercent: 0,
-            logoUrl: (m['1. symbol'] ? `https://logo.clearbit.com/${m['1. symbol'].toLowerCase()}.com` : undefined),
-        })).filter((s: any) => s.symbol);
+            logoUrl: (m.symbol ? `https://logo.clearbit.com/${m.symbol.toLowerCase()}.com` : undefined),
+        })).filter((s: { symbol: string }) => s.symbol);
 
         setCache(cacheKey, results, 1000 * 60 * 5);
         return results;
     } catch (error: unknown) {
+        console.log("helloooooo")
         console.warn('Symbol search failed:', error instanceof Error ? error.message : String(error));
+
         return [];
     }
 };
